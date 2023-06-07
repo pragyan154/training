@@ -27,7 +27,7 @@ cursor.execute(selectquery)
 rows = cursor.fetchall()
 
 for row in rows:
-    print(row)
+    print("row: ",row) 
 
 cursor.close()
 connection.close()
