@@ -1,8 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template , request
 import mysql.connector
 import json
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="/Users/prakhar.agnihotri/Documents/wiley_python/clone/training/templates")
 app.config['SECRET_KEY'] = 'fbfbaehfbhaekwfkjebfjk'
 
 mydb = mysql.connector.connect(
@@ -24,55 +24,65 @@ product_data = [
     ("Dress", 39)
 ]
 
-cart_data = [
-    (1, 2),
-    (2, 1)
-]
+# cart_data = [
+#     (1, 2),
+#     (2, 1)
+# ]
 
-order_data = [
-    (1, 2, "rohan"),
-    (2, 1, "goku")
-]
+# order_data = [
+#     (1, 2, "rohan"),
+#     (2, 1, "goku")
+# ]
 
 insert_products = "INSERT INTO products999 (name, price) VALUES (%s, %s)"
 mycursor.executemany(insert_products, product_data)
 
-insert_cart = "INSERT INTO cart999 (product_id, quantity) VALUES (%s, %s)"
-mycursor.executemany(insert_cart, cart_data)
+# insert_cart = "INSERT INTO cart999 (product_id, quantity) VALUES (%s, %s)"
+# mycursor.executemany(insert_cart, cart_data)
 
-insert_orders = "INSERT INTO orders999 (product_id, quantity, customer_name) VALUES (%s, %s, %s)"
-mycursor.executemany(insert_orders, order_data)
+# insert_orders = "INSERT INTO orders999 (product_id, quantity, customer_name) VALUES (%s, %s, %s)"
+# mycursor.executemany(insert_orders, order_data)
+
+def insert_into_cart(product_id, quantity):
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO cart999 (product_id, quantity) VALUES (%s, %s)"
+    val = (product_id, quantity)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    mycursor.close()
 
 @app.route('/')
 def home():
-    return "Welcome to the Cloth Store!"
+    return render_template('Home.html')
 
 @app.route('/products')
 def products12():
     cursor = mydb.cursor()
     cursor.execute("SELECT * FROM products999")
     products = cursor.fetchall()
-    for p in products:
-        print(p)
-    return json.dumps(products)
+    return render_template("products.html", products=products)
+
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    product_id = request.form['product_id']
+    quantity = request.form['quantity']
+    insert_into_cart(product_id, quantity)
+
+    return "Product added to cart successfully!"
 
 @app.route('/cart')
 def cart12():
     cursor = mydb.cursor()
     cursor.execute("SELECT * FROM cart999")
     cart_items = cursor.fetchall()
-    # for c in cart_items:
-    #     print(c)
-    return json.dumps(cart_items)
+    return render_template("cart.html", cart_items=cart_items)
 
 @app.route('/orders')
 def orders12():
     cursor = mydb.cursor()
     cursor.execute("SELECT * FROM orders999")
     orders = cursor.fetchall()
-    # for o in orders:
-    #     print(o)
-    return json.dumps(orders)
+    return render_template("orders.html", orders=orders)
 
 if __name__ == '__main__':
-    app.run(debug=True, port= 8080)
+    app.run(debug=True, port=8080)
